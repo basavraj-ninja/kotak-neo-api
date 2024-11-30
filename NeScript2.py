@@ -1,63 +1,66 @@
 import time
 import logging
-from neo_api_client import NeoAPI
-from neo_api_client.api.positions_api import PositionsAPI
-#from neo_api_client.api.orders_api import OrdersAPIclear
 import json
+from neo_api_client import NeoAPI
+from neo_api_client.api.limits_api import LimitsAPI
 
-# Step 1: Initialize the Kotak Neo API client
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+
+# Threshold for unrealized losses
+LOSS_THRESHOLD = -5000.0  # Set your loss threshold here
+CHECK_INTERVAL = 60  # Time interval (in seconds) between checks
+
+# Initialize the Kotak Neo API client
 client = NeoAPI(
-    consumer_key="nfD9cE235rOqFHIERNbrIseUjY0a",  # Replace with your Consumer Key from Kotak
-    consumer_secret="oEAfqGkKe_JoefyjY3fQfXPacY0a",  # Replace with your Consumer Secret from Kotak
-    environment="prod"  # Use "prod" for live trading
+    consumer_key="nfD9cE235rOqFHIERNbrIseUjY0a",
+    consumer_secret="oEAfqGkKe_JoefyjY3fQfXPacY0a",
+    environment="prod"
 )
 
-# Step 2: Log in with your registered mobile number and password
+# Log in to the API
 try:
     client.login(
-        mobilenumber="+919900927937",  # Replace with your registered mobile number
-        password="Aarav@123"  # Replace with your Kotak login password
+        mobilenumber="+919900927937",
+        password="Aarav@123"
     )
     print("Login successful!")
-except Exception as e:
-    print("Login failed. Exception details:")
-    print(type(e))  # Check the type of the exception
-    print(str(e) if e else "Unknown error occurred")  # Handle NoneType gracefully
-
-# Step 3: Authenticate using the OTP sent to your registered mobile number
-try:
-    otp = input("Enter the OTP sent to your mobile: ")  # User enters OTP
+    otp = input("Enter the OTP sent to your mobile: ")
     client.session_2fa(OTP=otp)
     print("Authentication successful!")
-    print("Attributes of client:", dir(client))
-    
 except Exception as e:
-    print("Authentication failed. Exception details:")
-    print(type(e))  # Check the type of the exception
-    print(str(e) if e else "Unknown error occurred")  # Handle NoneType gracefully
-    print("Attributes of client:", dir(client))
-    # Print the attributes of the client object in a neat format
-    
+    print("Login or authentication failed:", str(e))
+    exit(1)
+
+
+
+# Pretty print the available methods of the client object
+def print_client_methods(client):
+    methods = dir(client)
+    print("\nAvailable Methods in Client:")
+    print("=" * 40)
+    for method in methods:
+        print(f"- {method}")
+    print("=" * 40)
+
+# Call the function with your client object
+print_client_methods(client)
 
 from neo_api_client.api.positions_api import PositionsAPI
-
 # Initialize the PositionsAPI with the authenticated client
 #positions_api = PositionsAPI(client)
-
 # Fetch holdins using the `Hondings` method
 try:
     holdings_data = client.holdings()  # Directly call the holdings method
     print("Holndings Data:", holdings_data)
 except Exception as e:
     print("Failed to fetch positions:", str(e))
-
 # Fetch Positions using the `Positions` method
 try:
     positions_data = client.positions()  # Directly call the positions method
     print("Positions Data:", positions_data)
 except Exception as e:
     print("Failed to fetch positions:", str(e))
-
     # Fetch holdings using the `holdings` method
 try:
     holdings_data = client.holdings()  # Directly call the holdings method
@@ -70,10 +73,8 @@ except Exception as e:
     print(json.dumps(holdings_data, indent=4))  # Pretty-print the holdings data
 
 
-
 except Exception as e:
     print(f"Failed to fetch holdings: {str(e)}")
-
 # Fetch positions using the `positions` method
 try:
     positions_data = client.positions()  # Directly call the positions method
@@ -82,20 +83,11 @@ try:
 except Exception as e:
     print("Failed to fetch positions:", str(e))
 
-
-# Extract all `displaySymbol` values
+# Fetch positions using the `positions` method
 try:
-    display_symbols = [
-        holding.get("displaySymbol") for holding in holdings_data.get("data", [])
-        if holding.get("")
-    ]
-
-    # Print the extracted `displaySymbol` values
-    print("Extracted Display Symbols:")
-    print(display_symbols)
+    limits_data = client.limits()  # Directly call the positions method
+    print("limits Data:")
+    print(json.dumps(limits_data, indent=4))  # Pretty-print the positions data
 except Exception as e:
-    print("Failed to fetch positions:", str(display_symbols))
-
-
-
+    print("Failed to fetch limits:", str(e))
 
